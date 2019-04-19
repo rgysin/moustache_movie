@@ -5,39 +5,41 @@ import time
 import numpy as np
 import matplotlib.pyplot as plt
 
-class Vehicle:
+class Motor:
     def __init__(self):
+        self.length = 76
         self.speed = 0
 
     # Ideally this is some sort of actual measurement
-    def update(self, acceleration, dt):
-        self.speed += acceleration*dt
-        return self.speed
+    def update(self, power, dt):
+        self.speed = power
+        self.length += self.speed * dt
+        return self.length
 
 if __name__ == "__main__":
-    vehicle= Vehicle()
-    speed = vehicle.speed
+    motor = Motor()
+    length = motor.length
 
-    pid = PID(5, 0.01, 0.1, setpoint=speed)
-    pid.output_limits = (0, 100)
+    pid = PID(5, 0.01, 0.1, setpoint=length)
+    pid.output_limits = (-100, 100)
 
     start_time = time.time()
     last_time = start_time
 
     # keep track of values for plotting
-    acceleration, setpoint, y, x = [], [], [], []
+    power, setpoint, y, x = [], [], [], []
 
     while time.time() - start_time < 10:
         current_time = time.time()
         dt = current_time - last_time
 
-        accel = pid(speed)
-        speed = vehicle.update(accel, dt)
+        accel = pid(length)
+        length = motor.update(accel, dt)
 
         x += [current_time-start_time]
-        y += [speed]
+        y += [length]
         setpoint += [pid.setpoint]
-        acceleration += [accel]
+        power += [accel]
 
         if current_time - start_time > 1:
             pid.setpoint = 75
@@ -46,9 +48,9 @@ if __name__ == "__main__":
 
     plt.plot(x, y, label='measured')
     plt.plot(x, setpoint, label='target')
-    plt.plot(x, acceleration, label='acceleration')
-    plt.axis([0, 10, 0, 125])
+    plt.plot(x, power, label='power')
+    plt.axis([0, 10, -125, 125])
     plt.xlabel('time')
-    plt.ylabel('speed')
-    plt.legend
+    plt.ylabel('length')
+    plt.legend()
     plt.show()
